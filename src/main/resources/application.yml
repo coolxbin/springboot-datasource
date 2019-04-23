@@ -1,0 +1,102 @@
+app:
+  datasource:
+    jdbc-url:
+    username: root
+    password: root
+    maximum-pool-size: 30
+spring:
+  datasource:
+    url: "jdbc:mysql://localhost:3306/mallen"
+    username: root
+    password: root
+    # hikari官方文档指出，hikari的默认配置在大多数环境中都能有很好的性能了，一般只需要设置必须的三个项目：jdbcUrl、username、password。
+    # 此处仅为了说明各个属性，配置值大部分都是默认值
+    hikari:
+      # This property controls the default auto-commit behavior of connections returned from the pool. It is a boolean value.
+      auto-commit: true
+      # 客户端从连接池获取连接的最大等待时间，如果超过该时间将会抛出SQLException。该项最不能小于250ms，默认30s
+      connection-timeout: 30000
+      # 连接被视为空闲的等待时间，该属性仅在minimumIdle小于maximumPoolSize的时候生效，当连接数量达到minimumIdle时，该配置也不在生效。
+      # 该配置生效可能会有最大+30s，平均+15秒的误差。如果配置为0，则表示不检测连接是否空闲。
+      # 该项值不能小于10s，默认600s（10 minutes）
+      idle-timeout: 600000
+      # 该项控制连接池中的连接的最大存在时间。一个正在被应用使用的连接，永远不会被弃用，只有当应用程序使用了连接后，才有可能被弃用。
+      # On a connection-by-connection basis, 为了避免大规模的连接消亡，我们使用了小衰减策略。
+      # 我们强烈建议设置该值, 并且该值应该比database或者infrastructure强制的超时时间短几秒。
+      # 如果设置为0，则表示不起用该检测，连接的生命周期仅取决于idle-timeout。默认值为1800s（30 minutes）
+      # add by mallen : mysql默认为8小时，该值可以设置的更长
+      max-lifetime: 1800000
+      # 如果你的driver支持JDBC4，我们强烈将以不要设置该项！该项存在的目的仅是为了兼容不支持JDBC4的Connection.isValid()接口的遗留驱动。
+      # 该项的值会在连接池将连接交给应用之前被执行，以便用于确认连接仍然可用。如果Hikari检测到你的driver不支持JDBC4，它会打印error日志，以便让你知道。
+      # 默认值为none
+      # add by mallen :
+      # mysql driver 5.1支持 JDBC 3.0, 4.0, 4.1, and 4.2，兼容mysql server 5.6, 5.7, 8.0，兼容jdk 1.5，1.6，1.7，1.8。但是https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-versions-java.html
+      # mysql driver 8.0 支持JDBC 4.2，兼容 mysql server 5.6, 5.7, 8.0，兼容jdk 1.8，强烈建议使用该版本：https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-versions.html
+      # spring boot默认使用8.0.15
+      connection-test-query:
+      # 该项控制连接池的最小连接数量。如果连接数量低于此值并且总连接数小于maximumPoolSize，则HikariCP将尽最大努力快速有效地添加连接。
+      # 然而，为了最大限度地提高性能和响应峰值需求，我们建议不设置此值，而是允许HikariCP充当固定大小的连接池。
+      # 默认值:与maximumPoolSize相同
+      minimum-idle:
+      # 该项控制连接池的最大连接数量，该数量包括空闲连接和在使用的连接。基本上，这个值将确定到连接到数据库服务器的最大数量。
+      # 当池达到这个大小，并且没有空闲连接可用时，对getConnection()的调用将阻塞connectionTimeout毫秒，直到超时为止。
+      # 合理的值最好由您的执行环境决定，默认值10
+      # 可以阅读该文档获取更多https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
+      maximum-pool-size: 10
+      # This property is only available via programmatic configuration or IoC container.
+      # 该项允许你指定一个Codahale/Dropwizard MetricRegistry实例，用于Hikari报告各种指标。更多细节参见： https://github.com/brettwooldridge/HikariCP/wiki/Dropwizard-Metrics
+      # Default: none
+      metric-registry:
+      # This property is only available via programmatic configuration or IoC container.
+      # 该项允许你指定一个Codahale/Dropwizard HealthCheckRegistry实例，用于Hikari报告各种指标，详见：https://github.com/brettwooldridge/HikariCP/wiki/Dropwizard-HealthChecks
+      # Default: none
+      health-check-registry:
+      # 该项用于指定线程值名称，配置了该项可以在日志或者JMX管理控制台中识别是哪一个线程池以及其配置
+      # add by mallen: 建议设置为应用名相关的名字
+      pool-name: datasource-pool
+      # 这个属性控制者连接池，在未能成功获取初始连接时，是否快速失败。设置成任何正数都可以，如果一个连接在该时间内未能被初始化，将会抛出异常。这个超时时间将会在connectionTimeout超时之后开始计算。
+      # 如果该值设置为0，HikariCP将尝试获取并校验连接。如果获取到了连接，但是校验失败，将会抛出异常并且连接池将不会启动。但是，如果不能获取到连接，连接池将会正常启动，但是后续获取连接的尝试将会失败。
+      # 如果这个值小于0，在启动时将不会尝试获取连接，而是直接启动，然后在后台进行尝试获取连接。当然，这种方式同样会的导致连接池启动了，但是后续获取不到连接的问题。
+      # 默认值：1
+      initialization-fail-timeout: 1
+      # 该配置指定，在连接池内部进行查询（比如alive test）时，是否进行隔离，每个连接使用自己的事务。由于这些查询都是read-only的，所以基本不需要使用自己的事务。
+      # 该配置仅在禁用autoCommite时才适用，默认为false
+      isolate-internal-queries: false
+      # 是否允许通过JMX控制连接池的暂停和恢复，这非常适用于某些故障自动转移场景。
+      # 当连接池暂停了，调用getConnection()将不会超时，直到连接池恢复。默认值：false
+      allow-pool-suspension: false
+      # 该属性指定，从连接池中获取的连接是否被默认置为read-only模式。需要注意的时，有些数据库不支持read-only模式，而有些却有特殊优化。
+      # 你是否需要这个属性，很大程度上取决与你的应用程序以及数据库服务器。默认值：false
+      read-only: false
+      # 是否注册JMX Management Beans ("MBeans") ，默认值：false
+      register-mbeans: false
+      # 该属性为支持catelogs的数据库设置默认的catelog，如果该属性没有被指定（没有被指定表示不出现该属性，所以此处将该属性注释掉），则使用driver中定义。
+#      catalog:
+      # 该属性设置一条SQL语句，该语句会在连接创建后，加入到连接池之前被执行。如果该SQL无效或者抛出异常，该连接将会被视为失败，然后会执行重试逻辑。默认值：none
+      connection-init-sql:
+      # HikariCP将会尝试通过jdbcUrl来解析出driver class，但是对于某些较老的driverClassName，则必须要指定该项。如果你获取到明显的找不到driver class的日志，请配置该项。默认值：none
+      driver-class-name:
+      # 该属性指定从连接池中获取的连接默认的事务隔离级别。如果该属性没有被指定（没有被指定表示不出现该属性，所以此处将该属性注释掉），则使用driver中定义。
+      # 仅当你确定你的所有查询都需要使用相同的事务隔离级别时，才使用该属性。该属性的值必须是java.sql.Connection中定义的常量名，
+      # 比如TRANSACTION_READ_COMMITTED, TRANSACTION_REPEATABLE_READ。Default: driver default
+#      transaction-isolation:
+      # 该属性指定，在进行alive测试时的超时时间，该时间必须小于connectionTimeout。最小为250ms，默认5000ms
+      validation-timeout: 5000
+      # 该属性指定应用归还连接到连接池的最大时间，如果超过该时间，连接池将会打印一条日志，以提示存在连接未被释放风险。如果设置为0，表示禁用该检测。
+      # 最小值2000ms，默认值0。
+      leak-detection-threshold: 0
+      # This property is only available via programmatic configuration or IoC container.
+      # 该属性允许你直接设置连接池封装的数据源，而不是让HikariCP通过反射机制自己创建。在某些IOC框架中，这是非常有用的。
+      # 如果指定了该属性，dataSourceClassName和其他与数据源有关的属性都将被忽略。默认值：none
+      data-source:
+      # 为支持schemas的数据库服务器，指定默认的schema。如果该属性没有被指定，则使用driver中定义的。
+#      schema:
+      # This property is only available via programmatic configuration or IoC container.
+      # 通过该属性可以设置连接池使用的所有线程的工厂，该工厂为java.util.concurrent.ThreadFactory的实例。
+      # 在某些有限制的环境中，需要使用到该属性。这些环境只允许通过应用程序容器指定的ThreadFactory创建线程。默认值：none
+      thread-factory:
+      # This property is only available via programmatic configuration or IoC container.
+      # This property allows you to set the instance of the java.util.concurrent.ScheduledExecutorService that will be used for various internally scheduled tasks.
+      # If supplying HikariCP with a ScheduledThreadPoolExecutor instance, it is recommended that setRemoveOnCancelPolicy(true) is used.
+      # 默认值：none
+      scheduled-executor:
